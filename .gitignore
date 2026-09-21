@@ -1,0 +1,11 @@
+# Generated TLS material for the lab (regenerate with lab/scripts/generate-certs.sh)
+lab/certs/*.crt
+lab/certs/*.key
+
+# OS/editor noise
+.DS_Store
+*.swp
+
+# Python
+__pycache__/
+*.pyc

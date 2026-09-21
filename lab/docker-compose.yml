@@ -1,0 +1,222 @@
+# The whole diagram, as containers.
+#
+#   internet network (203.0.113.0/24)      dmz network (10.10.10.0/24)
+#   ---------------------------------      ---------------------------
+#   client        203.0.113.50   \
+#                                  >  firewall  10.10.10.1  --- everything else
+#   (firewall)    203.0.113.10   /
+#
+# The firewall is the ONLY container with a leg in both networks — same as
+# a real edge router/firewall. See docs/05-firewall-and-nat.md.
+#
+# Read lab/README.md for setup steps and exercises before running this.
+
+services:
+
+  # ------------------------------------------------------------------
+  # The "internet" side
+  # ------------------------------------------------------------------
+
+  client:
+    build: ./client
+    container_name: client
+    hostname: client
+    networks:
+      internet:
+        ipv4_address: 203.0.113.50
+    # Keeps the container alive so you can `docker compose exec client sh`
+    # and run curl/dig/traceroute against the lab whenever you like.
+    command: ["sleep", "infinity"]
+    depends_on:
+      - firewall
+
+  firewall:
+    build: ./firewall
+    container_name: firewall
+    hostname: firewall
+    cap_add:
+      - NET_ADMIN   # required to manage iptables rules and IP forwarding
+      - NET_RAW
+    networks:
+      internet:
+        ipv4_address: 203.0.113.10
+      dmz:
+        ipv4_address: 10.10.10.1
+    ports:
+      # Convenience: lets you also test from your real terminal/browser
+      # with `curl -k https://localhost:8443/`, in addition to using the
+      # `client` container to play the role of an external user.
+      - "8443:8443"
+
+  # ------------------------------------------------------------------
+  # VPN — sits on the dmz network; the ONLY inbound path to it from the
+  # internet network is the firewall's UDP 51820 DNAT rule. Its admin UI
+  # (51821) is published directly here, deliberately bypassing the
+  # simulated internet path entirely — see docs/06-vpn.md.
+  # ------------------------------------------------------------------
+
+  vpn:
+    image: ghcr.io/wg-easy/wg-easy:14
+    container_name: vpn
+    hostname: vpn
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    sysctls:
+      net.ipv4.ip_forward: 1
+      net.ipv4.conf.all.src_valid_mark: 1
+    environment:
+      # For a real device to connect to this VPN, this needs to be an
+      # address your device can actually reach (your host's LAN IP, or a
+      # public IP if port-forwarded on your real router). "localhost"
+      # only works for testing from the same machine.
+      - WG_HOST=${WG_HOST:-127.0.0.1}
+      - WG_PORT=51820
+      # The private range the VPN hands addresses out from — see
+      # docs/06-vpn.md and docs/11-full-request-walkthrough.md, which
+      # both assume this exact range.
+      - WG_DEFAULT_ADDRESS=10.13.13.x
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.5
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    volumes:
+      - wg_data:/etc/wireguard
+
+  # ------------------------------------------------------------------
+  # Load balancer — pure TCP/L4 passthrough. Never decrypts anything.
+  # See docs/07-load-balancer.md.
+  # ------------------------------------------------------------------
+
+  loadbalancer:
+    build: ./loadbalancer
+    container_name: loadbalancer
+    hostname: loadbalancer
+    cap_add:
+      - NET_ADMIN   # needed so scripts/fix-routes.sh can set its routes
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.10
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - waf1
+      - waf2
+
+  # ------------------------------------------------------------------
+  # WAF replicas — terminate TLS, inspect the plaintext request, forward
+  # clean requests to their own reverse proxy. See docs/08-waf.md.
+  # ------------------------------------------------------------------
+
+  waf1:
+    build:
+      context: ./waf
+      args:
+        NGINX_CONF: nginx-1.conf
+    container_name: waf1
+    hostname: waf1
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.21
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - reverse-proxy-1
+
+  waf2:
+    build:
+      context: ./waf
+      args:
+        NGINX_CONF: nginx-2.conf
+    container_name: waf2
+    hostname: waf2
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.22
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - reverse-proxy-2
+
+  # ------------------------------------------------------------------
+  # Reverse proxy replicas — plain HTTP, add X-Forwarded-* headers.
+  # See docs/09-reverse-proxy-and-tls.md.
+  # ------------------------------------------------------------------
+
+  reverse-proxy-1:
+    build:
+      context: ./reverse-proxy
+      args:
+        NGINX_CONF: nginx-1.conf
+    container_name: reverse-proxy-1
+    hostname: reverse-proxy-1
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.31
+    depends_on:
+      - web1
+
+  reverse-proxy-2:
+    build:
+      context: ./reverse-proxy
+      args:
+        NGINX_CONF: nginx-2.conf
+    container_name: reverse-proxy-2
+    hostname: reverse-proxy-2
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.32
+    depends_on:
+      - web2
+
+  # ------------------------------------------------------------------
+  # Web servers — tiny stdlib Python, see docs/10-web-server.md.
+  # ------------------------------------------------------------------
+
+  web1:
+    build: ./web
+    container_name: web1
+    hostname: web1
+    environment:
+      - SERVER_NAME=web-1
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.41
+
+  web2:
+    build: ./web
+    container_name: web2
+    hostname: web2
+    environment:
+      - SERVER_NAME=web-2
+    networks:
+      dmz:
+        ipv4_address: 10.10.10.42
+
+networks:
+  # `internal: true` on both networks means Docker will NOT set up its
+  # own automatic NAT/gateway to the real internet for them — nothing in
+  # this lab needs real internet access, and keeping these fully closed
+  # keeps the simulation honest (and stops it silently working "by
+  # accident" via Docker's own routing instead of ours).
+  internet:
+    internal: true
+    ipam:
+      config:
+        - subnet: 203.0.113.0/24
+  dmz:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          # Docker always claims one address on a subnet for its own
+          # bridge gateway. We move it out of the way (.254) so we can
+          # give the firewall container the canonical, memorable .1
+          # instead. See docs/04 and docs/05 on default gateways.
+          gateway: 10.10.10.254
+
+volumes:
+  wg_data:

@@ -1,0 +1,41 @@
+# A minimal, standalone stack that makes the DHCP handshake described in
+# docs/04-the-endpoint-nic-dhcp-gateway.md actually visible: one DHCP
+# server (dnsmasq) and one client that deliberately gives up its
+# Docker-assigned address and requests a real one instead, while
+# tcpdump captures every packet of the exchange.
+#
+# Run: docker compose up --build
+# Then: docker compose logs -f client
+
+services:
+  dnsmasq:
+    build: ./dnsmasq
+    container_name: dhcp-server
+    hostname: dhcp-server
+    cap_add:
+      - NET_ADMIN
+    networks:
+      dhcp_lan:
+        ipv4_address: 192.168.50.1
+
+  client:
+    build: ./client
+    container_name: dhcp-client
+    hostname: dhcp-client
+    cap_add:
+      - NET_ADMIN   # to flush/replace its own IP address
+      - NET_RAW     # for tcpdump
+    networks:
+      dhcp_lan: {}
+    depends_on:
+      - dnsmasq
+
+networks:
+  dhcp_lan:
+    ipam:
+      config:
+        - subnet: 192.168.50.0/24
+          # Move Docker's own bridge gateway out of .1 so the DHCP
+          # server can plausibly sit there instead — same trick as
+          # lab/docker-compose.yml, see docs/05-firewall-and-nat.md.
+          gateway: 192.168.50.254
