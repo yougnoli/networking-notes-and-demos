@@ -8,10 +8,14 @@ up: it actually reads the HTTP request — the URL, the headers, the
 body — and decides whether it looks malicious, independent of whether the
 source IP and port were "allowed" by the network firewall.
 
-**Data-engineering analogy:** if the firewall is a network ACL, the WAF
-is input validation/sanitization, applied centrally, before the request
-ever reaches your application code. It's the network-appliance version of
-"never trust user input."
+**In data/AI terms:** if the network firewall is an access grant (who's
+allowed to connect at all), the WAF is input validation — applied
+centrally, as network infrastructure, before a request ever reaches
+application code. It's the same instinct as sanitizing a form field
+before it reaches a database, or filtering/guarding a prompt before it
+reaches a language model to catch prompt-injection attempts: "never
+trust input, no matter where it came from," just enforced one layer
+earlier, for every request, automatically.
 
 ## Why it has to sit where TLS gets decrypted
 
@@ -36,7 +40,7 @@ IP reputation feeds, rate limiting, and more. That's real infrastructure,
 but it's also a black box you can't easily read line by line — which
 works against the goal of this repo.
 
-So instead, [`lab/waf/nginx.conf`](../lab/waf/nginx.conf) is a **small,
+So instead, [`lab/waf/nginx-1.conf`](../lab/waf/nginx-1.conf) is a **small,
 fully commented, hand-written WAF** that checks for the same handful of
 attack *categories* the real thing checks for, using plain nginx
 `location` blocks and regex matching, so every single rule is something
@@ -98,5 +102,5 @@ docker compose logs -f waf1
 ```
 
 Every blocked request logs which rule matched and why — read
-[`lab/waf/nginx.conf`](../lab/waf/nginx.conf) alongside the log output so
+[`lab/waf/nginx-1.conf`](../lab/waf/nginx-1.conf) alongside the log output so
 you can match cause to effect directly.

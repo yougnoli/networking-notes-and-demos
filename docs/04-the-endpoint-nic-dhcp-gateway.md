@@ -2,7 +2,7 @@
 
 Every request in the big diagram starts somewhere: a laptop, a phone, a
 server. That thing is the **Endpoint (EP)**. This doc unpacks the short
-list of properties you wrote down for it:
+list of properties that describe it:
 
 - multihomed (more than one NIC)
 - a history of DHCP-assigned IPs
@@ -24,11 +24,11 @@ that tunnel (often named something like `wg0`, `tun0`, or `utun3`). Each
 one gets its own IP, its own subnet, and — this is the important
 part — its own routing behavior.
 
-**The data-engineering analogy:** this is exactly like an EC2 instance
-with multiple ENIs (Elastic Network Interfaces) attached to different
-VPCs — one interface for the private data-plane VPC, one for a
-management VPC. The instance is one machine, but "which network am I
-talking to" depends on which interface a packet goes out of.
+**In data/cloud terms:** if you've provisioned a cloud VM or a database
+instance with more than one network attachment (for example, one for a
+private data network and one for a public/management network), you've
+already seen multihoming — one machine, but "which network am I talking
+to" depends on which interface a piece of traffic goes out of.
 
 Why does this matter practically? Because when a device has multiple
 NICs, the operating system has to decide, for every outgoing packet,
@@ -63,17 +63,17 @@ This is a **lease**, not a permanent assignment — it comes with a TTL
 (commonly somewhere between minutes and days depending on network
 policy). The client has to renew it before it expires, and if it moves to
 a different network, it'll get a completely different lease from a
-different DHCP server. That's the "history" your notes refer to: over its
-life, a laptop that moves between home, office, and coffee-shop Wi-Fi
-accumulates a whole history of different leased IPs, each valid only on
-the network it was issued on, each eventually expiring or getting
-released when the NIC disconnects.
+different DHCP server. That's where a device's "history" of addresses
+comes from: over its life, a laptop that moves between home, office, and
+coffee-shop Wi-Fi accumulates a whole history of different leased IPs,
+each valid only on the network it was issued on, each eventually
+expiring or getting released when the NIC disconnects.
 
-**Data-engineering analogy:** DHCP is an auto-increment/sequence service
-with a lease TTL — closer to a Kubernetes pod getting a ClusterIP
-assigned by the cluster's IPAM on scheduling than to a fixed, hand-picked
-value. Nobody hardcodes it; it's handed out from a pool and reclaimed
-when it's no longer needed.
+**In data terms:** DHCP behaves like an auto-incrementing ID with an
+expiry — closer to a temporary access token or a database session ID
+that gets reissued each time you reconnect than to a fixed, hand-picked
+value. Nobody hardcodes it; it's handed out from a pool on request and
+reclaimed once it's no longer being renewed.
 
 You can watch this exact handshake happen, packet by packet, in
 [`dhcp-demo/`](../dhcp-demo/) — a client container gives up its
@@ -99,10 +99,10 @@ For every destination *outside* its own subnet, the endpoint doesn't
 know the full path — it just knows to hand the packet to its **default
 gateway**, which is a router (usually the first or last address in the
 subnet, by convention — e.g. `10.10.10.1`) responsible for figuring out
-the next hop. This is exactly the `default:` case of a `switch`
-statement, or a catch-all route (`0.0.0.0/0`) in a routing table: "I
-don't have a specific rule for this destination, so send it here and let
-that thing deal with it."
+the next hop. It's the same idea as a catch-all `ELSE` branch in a SQL
+`CASE WHEN`, or the default route in an API gateway: "I don't have a
+specific rule for this destination, so send it here and let that thing
+deal with it."
 
 In our lab, the firewall container **is** the default gateway for every
 host on the `dmz` network. Every container's routing table has a line
@@ -141,5 +141,5 @@ docker compose exec web1 sh -c "ip addr show"     # every NIC and its IP/subnet
 docker compose exec web1 sh -c "ip route show"    # its default gateway
 ```
 
-For the full DHCP handshake, see [`dhcp-demo/README instructions`](../dhcp-demo/) —
-that stack is specifically built to make DORA visible.
+For the full DHCP handshake, see [`dhcp-demo/`](../dhcp-demo/) — that
+stack is specifically built to make DORA visible.

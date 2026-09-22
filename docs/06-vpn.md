@@ -1,6 +1,6 @@
 # VPN
 
-Your note on the VPN server was short and exactly right:
+Here's the one-sentence version of what a VPN server does:
 
 > Gives an IP address to that IP range
 
@@ -19,6 +19,13 @@ But sometimes a legitimate user genuinely needs access from outside — a
 remote employee, someone on a client site, whatever. The VPN's job is to
 make that person's device **appear to be inside the private network**,
 without punching a hole in the firewall for the general public.
+
+**In data terms:** this is exactly the situation behind a data warehouse
+or a model-serving endpoint that's configured to only accept connections
+from inside a private network (a "VPN-only" or "private-link" data
+source, in the language a data platform team might use). The data itself
+never moves anywhere different — what changes is whether your laptop is
+allowed to ask for it at all.
 
 ## How it does that
 

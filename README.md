@@ -1,14 +1,27 @@
 # Networking Notes & Demos
 
-A hands-on knowledge base for learning practical enterprise networking —
-built for people who already think in systems (pipelines, services, data
-flow) but have never had to reason about IP addresses, NAT, or TLS
-termination on purpose.
+A hands-on knowledge base for learning practical, real-world networking
+— written for **data analysts, data engineers, and AI engineers** who
+work with data, APIs, and cloud tools every day but have never had a
+reason to learn how a request actually travels across a network. No
+computer science degree, no networking certification, and no prior
+infrastructure experience assumed. Every concept is explained from
+scratch and tied back to things you already do: writing SQL, calling an
+API from a notebook, building a pipeline, or hitting rate limits on an
+LLM provider.
 
-This repo grew out of one whiteboard diagram of "how a request gets from
-the internet to a web server," so that's exactly how it's organized: read
-the diagram, read the docs that explain each box in it, then run a real
-(if miniature) version of the whole thing on your laptop with Docker.
+If you've ever wondered what actually happens between typing a URL (or
+calling `requests.get(...)` in Python) and getting data back — or what
+people mean by "the API is behind a load balancer" or "that database is
+VPN-only" — this repo answers it, then lets you build a miniature,
+working version of the whole thing so you can watch it happen instead of
+just reading about it.
+
+This repo is organized around one diagram: "how a request travels from
+the internet to a web server, and everything it passes through along the
+way." Read the diagram, read the docs that explain each box in it, then
+run a real (if miniature) version of the whole thing on your own machine
+with Docker.
 
 ```
 INTERNET
@@ -39,11 +52,10 @@ multihoming, DHCP, subnets, default gateways, and public vs. private IPs.
 ## How to use this repo
 
 1. **Read, in order.** The docs in [`docs/`](docs/) are numbered and build
-   on each other. Each one is written for someone with a data/software
-   background but no networking background — expect analogies to things
-   like APIs, load balancers you've already used (e.g. an ALB in front of
-   a service), and packet flow explained the way you'd explain a request
-   flowing through a pipeline.
+   on each other. Each one starts from zero and leans on things people
+   who work with data already know — SQL, spreadsheets, REST APIs,
+   rate limits, data pipelines — rather than assuming any prior
+   networking or systems-administration background.
 2. **Run the lab.** [`lab/`](lab/) is a `docker compose` stack that
    actually implements the diagram above: a real firewall doing NAT and
    port-forwarding, a real WireGuard VPN server, a real load balancer, a
@@ -106,7 +118,21 @@ help you figure out why, which is the actual point of this repo.
 
 ## Who this is for
 
-You, specifically: a data engineer who is comfortable with distributed
-systems, APIs, and Docker, but has always treated "the network" as
-somebody else's layer. Every doc leans on that background instead of
-assuming CCNA-level prior knowledge.
+Anyone who works with data or builds on top of APIs and has always
+treated "the network" as somebody else's problem:
+
+- A **data analyst** who writes SQL and builds dashboards, and has
+  noticed that some data sources are reachable and others say
+  "connection refused" or "connection timed out," without knowing why.
+- A **data engineer** who builds pipelines, calls APIs, and uses Docker,
+  but has never had to reason about IP addresses, firewalls, or TLS on
+  purpose — those were always already working, or somebody else's job.
+- An **AI engineer** who calls model APIs, maybe self-hosts one behind a
+  load balancer, and has heard terms like "VPN-only endpoint" or "WAF
+  blocked the request" without a clear mental model of what's actually
+  happening underneath.
+
+No prior networking knowledge, cloud certification, or computer science
+background is assumed anywhere in this repo. Every term is defined the
+first time it's used, and every analogy points back to something from
+the data/API world you already know.

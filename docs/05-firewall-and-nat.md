@@ -1,12 +1,12 @@
 # Firewall & NAT
 
-Your original notes on the firewall were:
+A firewall in this position is really doing three separate jobs bundled
+into one box:
 
 > it knows the IP range and says "here it's me"; it acts as router as
 > well, it does NATTING
 
-That's three separate jobs bundled into one box. Let's take them one at a
-time.
+Let's take them one at a time.
 
 ## Job 1: it's a router
 
@@ -34,8 +34,10 @@ This is the part actually named after the word "firewall": a set of
 rules that decide, per packet, whether it's allowed through. The default
 posture in almost every real deployment (and in this lab) is **default
 deny**: block everything, then explicitly allow the small list of things
-that should work. This is the same principle as least-privilege IAM —
-start from zero access, grant exactly what's needed.
+that should work. It's the same instinct as granting a service account
+access to only the three tables it actually needs in a data warehouse,
+instead of giving it access to the whole warehouse and hoping nothing
+goes wrong — start from zero access, grant exactly what's needed.
 
 Concretely, this repo's firewall:
 
@@ -82,10 +84,12 @@ source port independently). The `iptables` rule looks like:
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 ```
 
-**Data-engineering analogy:** this is a connection pool. Many app-layer
-connections (internal IPs) get multiplexed onto a small number of pooled
-connections (the one public IP), and the pool keeps a mapping so
-responses get routed back to the right caller.
+**In data terms:** this is a connection pool. Many application-level
+connections (each internal IP) get multiplexed onto a small number of
+pooled connections (the one shared public IP), and the pool keeps a
+mapping so responses get routed back to the right caller — the same
+pattern a database connection pooler uses to let many app processes
+share a handful of actual database connections.
 
 ### Inbound: DNAT / "port forwarding"
 

@@ -1,15 +1,16 @@
 # Load Balancer
 
-Your note:
+The one-line reason this box exists:
 
 > if there are 20 web servers
 
 That's the whole reason load balancers exist: once you have more than one
 instance of something serving traffic, *something* has to decide which
-instance handles each incoming connection. If you've put a service behind
-an ALB, an NLB, an nginx `upstream` block, or a Kubernetes `Service`,
-you've already used one — this is the same concept, just the box in front
-of your web servers instead of your API.
+instance handles each incoming connection. If you've ever deployed an API
+with "3 replicas," used a managed load balancer in front of a web app, or
+sent inference requests to a self-hosted model that's scaled across
+several GPU instances, something upstream was already doing this job —
+this doc just makes it explicit.
 
 ## L4 vs. L7 load balancing
 
@@ -60,10 +61,10 @@ a new connection? A few common strategies:
 A load balancer is only useful if it actively avoids sending traffic to a
 backend that's down. It periodically checks each backend (a TCP connect,
 or an HTTP request to a `/health` endpoint) and takes unhealthy ones out
-of rotation automatically, putting them back once they recover. This is
-exactly the same idea as a Kubernetes readiness probe, or a target
-group's health check in an ALB — if you've configured either of those,
-you've configured this.
+of rotation automatically, putting them back once they recover — the
+same idea as a scheduled job that pings a service and pages someone if
+it stops responding, except here the "page" is just "stop sending it
+traffic," fully automatic, checked every few seconds.
 
 ## Try it in the lab
 

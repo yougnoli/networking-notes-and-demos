@@ -16,9 +16,10 @@ opposite perspectives:
   talking to the reverse proxy, which forwards the request to whichever
   actual backend should handle it.
 
-If you've fronted a set of backend services with an API gateway, or
-configured an nginx `server` block that proxies to an app running on
-`localhost:3000`, you've already built a reverse proxy.
+If you've ever put an API gateway in front of a set of backend services,
+or pointed a notebook at `localhost:8888` while something else quietly
+proxied requests to the actual model server, you've already used a
+reverse proxy, even if nobody called it that at the time.
 
 ## What a reverse proxy adds beyond "just forwarding"
 
@@ -46,10 +47,11 @@ do? A handful of things that are genuinely its job and nobody else's:
 - **A single place to add caching, compression, or rate limiting later**,
   without touching application code at all.
 
-**Data-engineering analogy:** it's the same value proposition as an API
-gateway in front of several microservices — a shared layer for
-cross-cutting concerns (auth headers, rate limiting, request/response
-shaping) that you don't want duplicated inside every service.
+**In data/AI terms:** it's the same value proposition as an API gateway
+sitting in front of several backend services or model endpoints — a
+shared layer for concerns that would otherwise need to be duplicated
+inside every single service: adding auth headers, enforcing rate limits,
+reshaping requests and responses.
 
 ## Where TLS termination actually happens in this lab
 
@@ -61,9 +63,9 @@ server — it's plain HTTP the rest of the way.
 
 Is that safe? In this lab, yes — the `dmz` network is private, only
 reachable by containers that are supposed to be there, matching how a
-lot of real internal traffic within a single VPC subnet or a single
-Kubernetes cluster's pod network is often left unencrypted, trusting the
-network boundary itself. Some organizations go further and require
+lot of real internal traffic inside a single trusted cloud network is
+often left unencrypted, trusting the network boundary itself rather than
+re-encrypting every internal hop. Some organizations go further and require
 **mTLS (mutual TLS)** even between internal hops — every service proves
 its identity to every other service with its own certificate, an
 approach often called **zero trust** because it doesn't rely on network
@@ -80,9 +82,9 @@ receive the ones it *does* set:
 docker compose exec client curl -sk -H "X-Debug: yes" https://203.0.113.10:8443/headers
 ```
 
-The response (served by [`lab/web1/index.html`](../lab/web1/) via a
-small echo endpoint) will show you exactly what headers the web server
-actually received — including `X-Forwarded-For` populated with the
-client's address, even though the web server's own TCP connection is
-only ever with the reverse proxy on the same private network, never with
-the original client directly.
+The response (served by the `/headers` route in
+[`lab/web/server.py`](../lab/web/server.py)) will show you exactly what
+headers the web server actually received — including `X-Forwarded-For`
+populated with the client's address, even though the web server's own
+TCP connection is only ever with the reverse proxy on the same private
+network, never with the original client directly.

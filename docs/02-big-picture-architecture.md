@@ -5,7 +5,7 @@ Every component gets its own deep-dive doc later — the goal here is just
 to see how they fit together and *why* they're in this order, before the
 details make it hard to see the shape.
 
-## The design, as given
+## The design, box by box
 
 ```
 INTERNET
@@ -94,9 +94,18 @@ way there. They can't:
 So in any real deployment (and in this repo's lab), TLS has to be
 **terminated** — decrypted — at or before the WAF. Everything after that
 point can safely run as plain HTTP, because it's inside infrastructure
-you control (a private network segment), the same way you wouldn't
-bother re-encrypting traffic between two services inside the same VPC
-subnet that only your own load balancer and app can reach.
+the organization controls end to end (a private network segment) —
+similar to how a data pipeline might encrypt data in transit from the
+public internet into a warehouse, but not bother re-encrypting it again
+between two internal jobs that already run inside the same trusted
+network.
+
+If you've ever called an API like OpenAI's or Anthropic's from Python,
+you've already experienced TLS termination from the other side: your
+request stays encrypted for its entire trip across the public internet,
+and gets decrypted only once it reaches that provider's infrastructure —
+somewhere in there is a component doing exactly the job this doc is
+about to describe for the WAF.
 
 This repo's lab terminates TLS **at the WAF layer**: the load balancer in
 front of it never decrypts anything (it operates purely on IP:port, so it

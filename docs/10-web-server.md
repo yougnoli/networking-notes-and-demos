@@ -2,7 +2,7 @@
 
 ## The end of the line
 
-Your note attached to this box was:
+The one-line description of this box was:
 
 > HTTPS session ends up to the web server
 
@@ -21,14 +21,14 @@ before this point actually produces the content the client asked for.
 ## What this lab's web server is
 
 Real web servers range from static file servers (nginx, serving HTML/
-CSS/JS straight off disk) to full application servers running your own
-code (Django, Flask, Express, Rails). This lab's web servers
-([`lab/web1/server.py`](../lab/web1/server.py) and
-[`lab/web2/server.py`](../lab/web2/server.py)) are deliberately tiny:
-plain Python, using only the standard library's `http.server` module —
-no framework, no dependencies, nothing to install — specifically so you
-can read the entire thing in under a minute and see exactly what happens
-to a request once it finally lands.
+CSS/JS straight off disk) to full application servers running someone's
+own code (Django, Flask, Express, Rails, or a model-serving framework
+like FastAPI wrapping a machine learning model). This lab's web server
+([`lab/web/server.py`](../lab/web/server.py), used by both replicas) is
+deliberately tiny: plain Python, using only the standard library's
+`http.server` module — no framework, no dependencies, nothing to
+install — specifically so you can read the entire thing in under a
+minute and see exactly what happens to a request once it finally lands.
 
 Each one does three things:
 
