@@ -11,41 +11,42 @@ details make it hard to see the shape.
 INTERNET
    |
    v
-+-------------------------------------------------------------+
-| FIREWALL                                                     |
-| - knows which IP ranges are "inside" vs "outside"            |
-| - says "here it's me" to the outside world (NAT)              |
-| - also acts as a router between the internet and the LAN      |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| FIREWALL                                                                 |
+| - knows which IP ranges are "inside" vs "outside"                        |
+| - says "here it's me" to the outside world (NAT)                         |
+| - also acts as a router between the internet and the LAN                 |
++--------------------------------------------------------------------------+
    |
    v
-+-------------------------------------------------------------+
-| VPN SERVER                                                    |
-| - hands a connecting device an IP from a private range         |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| VPN SERVER                                                               |
+| - hands a connecting device an IP from a private range                   |
++--------------------------------------------------------------------------+
    |
    v
-+-------------------------------------------------------------+
-| LOAD BALANCER                                                  |
-| - if there are 20 web servers, spreads traffic across them      |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| LOAD BALANCER                                                            |
+| - if there are 20 web servers, spreads traffic across them               |
++--------------------------------------------------------------------------+
    |
    v
-+-------------------------------------------------------------+
-| WAF (Web Application Firewall)                                  |
-| - inspects the actual HTTP request for attacks                   |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| WAF (Web Application Firewall)                                           |
+| - inspects the actual HTTP request for attacks                           |
++--------------------------------------------------------------------------+
    |
    v
-+-------------------------------------------------------------+
-| REVERSE PROXY                                                     |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| REVERSE PROXY                                                            |
+| - adds identifying headers, forwards the clean request to a web server   |
++--------------------------------------------------------------------------+
    |
    v
-+-------------------------------------------------------------+
-| WEB SERVER                                                          |
-| - the HTTPS session's content ultimately comes from here             |
-+-------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| WEB SERVER                                                               |
+| - the HTTPS session's content ultimately comes from here                 |
++--------------------------------------------------------------------------+
 ```
 
 Separately, every request *starts* at an **Endpoint (EP)** — a laptop,
