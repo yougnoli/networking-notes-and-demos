@@ -66,10 +66,6 @@ multihoming, DHCP, subnets, default gateways, and public vs. private IPs.
    happening between a client and a DHCP server, with `tcpdump` capturing
    every packet, so the abstract "the DHCP server gives you an IP" becomes
    something you've watched happen.
-4. **Take it home.** [`home-setup/`](home-setup/) is a worked example of
-   turning these same concepts into a real, physical home network — using
-   a real consumer router instead of a container, so you stop depending on
-   your ISP's box for your own firewall and VPN.
 
 ## Reading order
 
@@ -112,16 +108,6 @@ access (your laptop, a cloud VM, GitHub Codespaces, etc.). Everything in
 prediction based on how each documented piece of software behaves, not a
 transcript. If something doesn't match, that's useful too — the docs will
 help you figure out why, which is the actual point of this repo.
-
-## Taking it home
-
-Once the concepts click in the simulated lab, [`home-setup/`](home-setup/)
-walks through applying them for real: putting your ISP's gateway into
-bridge mode, setting up your own router as the firewall, and turning on a
-real VPN server — using an actual consumer router (an ASUS RT-BE92U, in
-that worked example) as the stand-in for `lab/firewall/` and the VPN
-container. The router model is just an example; the steps generalize to
-any router with real firewall/VPN settings.
 
 ## Prerequisites
 
