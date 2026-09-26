@@ -116,12 +116,13 @@ help you figure out why, which is the actual point of this repo.
 ## Taking it home
 
 Once the concepts click in the simulated lab, [`home-setup/`](home-setup/)
-walks through applying them for real: putting your ISP's gateway into
-bridge mode, setting up your own router as the firewall, and turning on a
-real VPN server — using an actual consumer router (an ASUS RT-BE92U, in
-that worked example) as the stand-in for `lab/firewall/` and the VPN
-container. The router model is just an example; the steps generalize to
-any router with real firewall/VPN settings.
+is a complete, from-scratch, numbered build guide for the real thing:
+bridging your ISP's gateway so it stops routing, setting up a real router
+as your own firewall and VPN server, then running `lab/` for real on a
+Raspberry Pi sitting behind it. The specific hardware in that guide (an
+ASUS RT-BE92U, a Telenet connection) is just the worked example — the
+steps generalize to any router with real firewall/VPN settings, behind
+any ISP, running the lab on any small always-on Linux machine.
 
 ## Prerequisites
 
